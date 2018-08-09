@@ -1,0 +1,165 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  BlogBaseName:
+    Type: String
+  ContactReceiverEmail:
+    Type: String
+  ContactSenderEmail:
+    Type: String
+Resources:
+  NimbusBlogLambdaRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              Service: 
+                - "lambda.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Path: "/"
+      RoleName: !Join ['', [!Ref BlogBaseName, '-contactform-lambda-role']]
+  NimbusBlogLambdaRolePolicies: 
+    Type: "AWS::IAM::Policy"
+    Properties: 
+      PolicyName: !Join ['', [!Ref BlogBaseName, '-ses-sendemail']]
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Action: "ses:SendEmail"
+            Resource: "*"
+      Roles: 
+        - !Ref NimbusBlogLambdaRole
+  NimbusBlogS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties: 
+      AccessControl: PublicRead
+      BucketName: !Join ['', [!Ref BlogBaseName, '.com']]
+      VersioningConfiguration: 
+        Status: Enabled
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: 404.html
+  NimbusBlogBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref 'NimbusBlogS3Bucket'
+      PolicyDocument:
+        Statement:
+        - Sid: PublicReadForGetBucketObjects
+          Effect: Allow
+          Principal: '*'
+          Action: s3:GetObject
+          Resource: !Join ['', ['arn:aws:s3:::', !Ref 'NimbusBlogS3Bucket', /*]]
+  NimbusBlogCloudfront:
+    Type: AWS::CloudFront::Distribution
+    DependsOn:
+    - NimbusBlogS3Bucket
+    Properties:
+      DistributionConfig:
+        Comment: Cloudfront Distribution pointing to S3 bucket
+        Origins:
+          - DomainName: !Join ['', [!Ref NimbusBlogS3Bucket, '.s3.amazonaws.com']]
+            Id: S3Origin
+            CustomOriginConfig:
+              HTTPPort: "80"
+              HTTPSPort: "443"
+              OriginProtocolPolicy: match-viewer
+        Enabled: true
+        HttpVersion: http2
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          ForwardedValues:
+            QueryString: false
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_All
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+  NimbusBlogContactUsLambda:
+    Type: "AWS::Lambda::Function"
+    DependsOn:
+    - NimbusBlogLambdaRole
+    Properties: 
+      Description: String
+      Environment:
+        Variables:
+          receiver: !Ref ContactReceiverEmail
+          sender: !Ref ContactSenderEmail
+      FunctionName: !Join ['', [!Ref BlogBaseName, '-contactform-lambda']]
+      Handler: contactform.handler
+      Code:
+        S3Bucket: jyang-nimbusblog.com
+        S3Key: lambda.zip
+      MemorySize: 128
+      Role: !Join ['', ['arn:aws:iam::', !Ref 'AWS::AccountId', ':role/', !Ref NimbusBlogLambdaRole]]
+      Runtime: python3.6
+      Timeout: 300
+  NimbusBlogContactUsLambdaPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+    - NimbusBlogContactUsLambda
+    - NimbusBlogApiMethodPost
+    Properties: 
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !GetAtt
+        - NimbusBlogContactUsLambda
+        - Arn
+      Principal: ses.amazonaws.com
+      SourceAccount: !Ref 'AWS::AccountId'
+      SourceArn: !Join ['', ['arn:aws:execute-api:us-east-1:', !Ref 'AWS::AccountId', ':', !Ref NimbusBlogApiMethodPost]]
+  NimbusBlogApi: 
+    Type: AWS::ApiGateway::RestApi
+    Properties:  
+      Description: "API for Contact Us on NimbusBlog"
+      Name: "NimbusBlogApi"
+  NimbusBlogApiMethodPost:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      ResourceId: !GetAtt NimbusBlogApi.RootResourceId
+      RestApiId: !Ref NimbusBlogApi
+  NimbusBlogApiMethodOptions:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      RestApiId: !Ref NimbusBlogApi
+      ResourceId: !GetAtt NimbusBlogApi.RootResourceId
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+            method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+          ResponseTemplates:
+            application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        Type: AWS
+        IntegrationHttpMethod: POST
+        Uri: !Join ['', ["arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/", !GetAtt NimbusBlogContactUsLambda.Arn, '/invocations']]
+      MethodResponses:
+      - StatusCode: 200
+        ResponseModels:
+          application/json: 'Empty'
+        ResponseParameters:
+            method.response.header.Access-Control-Allow-Credentials: true
+            method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+            method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+Outputs:
+  WebsiteURL:
+    Value: !GetAtt [NimbusBlogS3Bucket, WebsiteURL]
+    Description: URL for website hosted on S3
+  CloudfrontEndpoint:
+    Value: !GetAtt [NimbusBlogCloudfront, DomainName]
+    Description: Endpoint for Cloudfront distribution

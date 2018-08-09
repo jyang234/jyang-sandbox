@@ -1,0 +1,282 @@
+<!DOCTYPE HTML>
+
+<html>
+	<head>
+	<meta name="generator" content="Hugo 0.45" />
+		<title>John&#39;s NimbusBlog</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="/css/main.css" />
+		<link rel="stylesheet" href="/css/project.css" />
+		
+		<noscript><link rel="stylesheet" href="/css/noscript.css" /></noscript>
+		<script>
+			function submitToAPI(e) {
+			e.preventDefault();
+			var URL = "https://ud8r9lkdl4.execute-api.us-east-1.amazonaws.com/contact-us";
+
+				var Namere = /[A-Za-z]{1}[A-Za-z]/;
+				if (!Namere.test($("#name").val())) {
+								alert ("Name can not less than 2 char");
+					return;
+				}
+				if ($("#email").val()=="") {
+					alert ("Please enter your email id");
+					return;
+				}
+
+				var reeamil = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,6})?$/;
+				if (!reeamil.test($("#email").val())) {
+					alert ("Please enter valid email address");
+					return;
+				}
+
+			var name = $("#name").val();
+			var email = $("#email").val();
+			var messg = $("#message").val();
+			var data = {
+				name : name,
+				email : email,
+				messg : messg
+			};
+
+			$.ajax({
+				type: "POST",
+				url : "https://ud8r9lkdl4.execute-api.us-east-1.amazonaws.com/contact-us",
+				dataType: "json",
+				crossDomain: "true",
+				contentType: "application/json; charset=utf-8",
+				headers: {
+					'Access-Control-Allow-Credentials' : true,
+					'Access-Control-Allow-Origin':'*',
+					'Access-Control-Allow-Methods':'POST',
+					'content-type':'application/json',
+				},
+
+				data: JSON.stringify(data),
+
+				
+				success: function () {
+				
+				alert("Successful");
+				document.getElementById("contact-form").reset();
+			location.reload();
+				},
+				error: function () {
+				
+				alert("UnSuccessful");
+				}});
+			}
+		</script>
+	</head>
+	
+			<script src="/js/jquery.min.js"></script>
+	<body>
+
+    
+      <div id="wrapper">
+
+        
+          <header id="header">
+            <div class="logo">
+              
+                        
+              <span class="icon fa-cloud"></span>
+            
+            </div>
+            <div class="content">
+              <div class="inner">
+                <h1>John's NimbusBlog</h1>
+                <p><!--[-->A neat place to share my musings and experiment with cloud technologies<!--]--><br />
+                <!--[-->Oh, did I mention that this is 100% serverless? Butter believe it!<!--]--></p>
+              </div>
+            </div>
+            <nav>
+              <ul>
+                
+                  <li><a href="#intro">Intro</a></li>
+                
+                  <li><a href="#blog">Blog</a></li>
+                
+                  <li><a href="#work">Work</a></li>
+                
+                  <li><a href="#about">About</a></li>
+                
+                  <li><a href="#contact">Contact</a></li>
+                
+              </ul>
+            </nav>
+          </header>
+
+        
+          <div id="main">
+            
+              <article id="intro">
+  <h1>Intro</h1>
+  
+
+<h3 id="hello-friends-from-the-internet">Hello friends from the internet!</h3>
+
+<p>Welcome to my little home in the clouds. Unfortunately, it is not really an ideal place to raise a family. I&rsquo;m a software engineer/cloud ninja on the weekdays (level: journeyman), adventurer on the weekends (and occasionally the extended weekend, boss permitting).
+
+<figure class="image main">
+    
+        <img src="/images/pic01.jpg" />
+    
+    
+</figure>
+
+<em>This is me pretending to be super active in the Outer Banks, NC.</em></p>
+
+<p>Here, you will be able to join in my adventures, both virtual and geographical, as I will be posting as regularly as I feel like it! I will share with you all the cool stuff that I learn at work/home as well as my experiences from journeys near and far.</p>
+
+</article>
+
+            
+              <article id="blog">
+  <h1>Blog</h1>
+  <nav>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#first-post">First post!</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+
+<h6 id="first-post">First post!</h6>
+
+<p><em>August 9, 2018</em></p>
+
+<hr />
+
+<p>This is exciting, my very first blog post ever on my very first blog! Blogging seemed huge in the 2000&rsquo;s, but now everyone&rsquo;s on twitter and instagram - all about bite-sized sharing of thoughts. I&rsquo;ve wondered if this is a commentary on our generation&rsquo;s collective decline of attention span. But then again, less can sometimes be more as I&rsquo;ve come to find! This is all a very new experience for me as well, so I&rsquo;ll let you know later how I feel about microblogging vs straight up blogging.
+
+<figure class="image main">
+    
+        <img src="/images/pic04.jpg" />
+    
+    
+</figure>
+
+<em>Me and the gang on top of Whistler Mountain in British Columbia, Canada.</em></p>
+
+<p>As you can probably tell, I am an avid skiier! I am totally on the fence on whether or not I should buy myself an <a href="https://www.epicpass.com/passes/epic-local-pass.aspx#/">epic pass</a>. For less than $700, you&rsquo;d be able to ski at some of the best ski resorts in the US and some Europe/Japan/Canada. This seems steep from a glance, but if you consider a 5 day pass at Breckenridge being around the same price it&rsquo;s actually not a bad deal. Plus, you get 6 SWAF (Ski With A Friend) passes loaded in, so this is gonna come through huge when I decide to take my girlfriend on a ski vacation.</p>
+
+<p>Thats all I&rsquo;ve got on my mind currently, hope that was worthy of a first post! Check back soon for more musings and thoughts that nobody asked for!</p>
+
+<hr />
+
+</article>
+
+            
+              <article id="work">
+  <h1>Work</h1>
+  <p>
+<figure class="image main">
+    
+        <img src="/images/pic02.jpg" />
+    
+    
+</figure>
+
+This section is totally under construction dude!</p>
+
+</article>
+
+            
+              <article id="about">
+  <h1>About</h1>
+  <p>
+<figure class="image main">
+    
+        <img src="/images/pic03.jpg" />
+    
+    
+</figure>
+
+Hey there! My name is John Yang and I am a software engineer/cloud ninja on the weekdays (level: journeyman), adventurer on the weekends (and occasionally the extended weekend, boss permitting). I love to travel! I find that you can learn the most about a culture simply from eating and drinking your way through it. My goal is to travel to all seven continents at some point in my life. On weekends you can often find me hiking/biking all over Virginia, or at one of the many amazing breweries in Richmond! More likely than not though, you&rsquo;ll find me with my friends.</p>
+
+<p>I&rsquo;ve sort of stumbled into the software scene by accident, you might say. My degree from Penn State is in Management Information Systems, which was glorified technical project management (at the time, not sure if they&rsquo;ve changed up the curriculum at all). Up to the second year of my professional career, I&rsquo;ve only been in almost exclusively project management roles at GE. It was by chance that I seized an opportunity to take on a developer role on a project that I was managing. That was a huge turning point in both my career and my life, because now I am extremely passionate about learning new technologies and becoming a better full-stack software engineer.</p>
+
+<p>That&rsquo;s enough about me for now! Check back regularly if you wish to follow me on my adventures! Also feel free to follow me on any of my other social media homes (links in the Contact area)!</p>
+
+</article>
+
+            
+              <article id="contact">
+  <h1>Contact</h1>
+  <p>Thanks for stopping by! This means we&rsquo;re friends now, right?<br />
+Feel free to drop me a line! My other social media homes are in the icons below.</p>
+
+<form class="contact-form" id="contact-form" method="post">
+    <div class="field half first">
+        <label for="name">Name</label>
+        <input type="text" name="name" id="name" />
+    </div>
+    <div class="field half">
+        <label for="email">Email</label>
+        <input type="text" name="email" id="email" />
+    </div>
+    <div class="field">
+        <label for="message">Message</label>
+        <textarea name="message" id="message" rows="4"></textarea>
+    </div>
+    <ul class="actions">
+        <li><button type="button" onClick="submitToAPI(event)" class="btn btn-lg" style="margin-top:20px;">Submit</button></li>
+        <li><button type="reset" value="reset"class="btn btn-lg" style="margin-top:20px;">Reset</button></li>
+    </ul>
+</form>
+
+<ul class="icons">
+
+	<li><a href="https://www.linkedin.com/in/johnwyang" class="icon fa-linkedin"><span class="label">linkedin</span></a></li>
+
+	<li><a href="https://www.facebook.com/jyang2" class="icon fa-facebook"><span class="label">facebook</span></a></li>
+
+	<li><a href="https://www.instagram.com/jyang234" class="icon fa-instagram"><span class="label">instagram</span></a></li>
+
+	<li><a href="https://github.com/jyang234" class="icon fa-github"><span class="label">github</span></a></li>
+
+</ul>
+
+</article>
+
+            
+          </div>
+
+        
+          <div id="languages">
+            
+          </div>
+
+				
+					<footer id="footer">
+						<p class="copyright">&copy; 2018 John Yang. No rights reserved. Design: <a href="https://html5up.net">HTML5 UP</a>. Powered by <a href="https://www.gohugo.io/">Hugo.</a></p>
+					</footer>
+
+			</div>
+		
+			<div id="bg"></div>
+
+		
+			<script src="/js/skel.min.js"></script>
+			<script src="/js/util.js"></script>
+			<script src="/js/main.js"></script>
+			
+
+	</body>
+</html>
+

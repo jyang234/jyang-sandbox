@@ -1,0 +1,37 @@
+baseurl = "http://example.org"
+title = "John's NimbusBlog"
+languageCode = "en-us"
+defaultContentLanguage = "en"
+enableRobotsTXT = true
+disableKinds=["RSS"]
+
+[params]
+  description = '<!--[-->A neat place to share my musings and experiment with cloud technologies<!--]--><br />
+                <!--[-->Oh, did I mention that this is 100% serverless? Butter believe it!<!--]-->'
+  logo = "fa-cloud"
+  copyright = "2018 John Yang. No rights reserved"
+
+[[params.social]]
+  medium = "linkedin"
+  icon = "linkedin"
+  link = "https://www.linkedin.com/in/johnwyang"
+
+[[params.social]]
+  medium = "facebook"
+  icon = "facebook"
+  link = "https://www.facebook.com/jyang2"
+
+[[params.social]]
+  medium = "instagram"
+  icon = "instagram"
+  link = "https://www.instagram.com/jyang234"
+
+[[params.social]]
+  medium = "github"
+  icon = "github"
+  link = "https://github.com/jyang234"
+
+[languages]
+[languages.en]
+languageName = "English"
+weight = 1

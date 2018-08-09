@@ -1,0 +1,77 @@
+<!DOCTYPE HTML>
+<!--
+	Dimension by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>{{ .Title }}</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="/css/main.css" />
+		<link rel="stylesheet" href="/css/project.css" />
+		<!--[if lte IE 9]><link rel="stylesheet" href="/css/ie9.css" /><![endif]-->
+		<noscript><link rel="stylesheet" href="/css/noscript.css" /></noscript>
+		<script>
+			function submitToAPI(e) {
+			e.preventDefault();
+			var URL = "https://ud8r9lkdl4.execute-api.us-east-1.amazonaws.com/contact-us";
+
+				var Namere = /[A-Za-z]{1}[A-Za-z]/;
+				if (!Namere.test($("#name").val())) {
+								alert ("Name can not less than 2 char");
+					return;
+				}
+				if ($("#email").val()=="") {
+					alert ("Please enter your email id");
+					return;
+				}
+
+				var reeamil = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,6})?$/;
+				if (!reeamil.test($("#email").val())) {
+					alert ("Please enter valid email address");
+					return;
+				}
+
+			var name = $("#name").val();
+			var email = $("#email").val();
+			var messg = $("#message").val();
+			var data = {
+				name : name,
+				email : email,
+				messg : messg
+			};
+
+			$.ajax({
+				type: "POST",
+				url : "https://ud8r9lkdl4.execute-api.us-east-1.amazonaws.com/contact-us",
+				dataType: "json",
+				crossDomain: "true",
+				contentType: "application/json; charset=utf-8",
+				headers: {
+					'Access-Control-Allow-Credentials' : true,
+					'Access-Control-Allow-Origin':'*',
+					'Access-Control-Allow-Methods':'POST',
+					'content-type':'application/json',
+				},
+
+				data: JSON.stringify(data),
+
+				
+				success: function () {
+				// clear form and show a success message
+				alert("Successful");
+				document.getElementById("contact-form").reset();
+			location.reload();
+				},
+				error: function () {
+				// show an error message
+				alert("UnSuccessful");
+				}});
+			}
+		</script>
+	</head>
+	<!-- Scripts -->
+			<script src="/js/jquery.min.js"></script>
+	<body>
