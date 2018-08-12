@@ -66,10 +66,8 @@ Resources:
         Origins:
           - DomainName: !Join ['', [!Ref NimbusBlogS3Bucket, '.s3.amazonaws.com']]
             Id: S3Origin
-            CustomOriginConfig:
-              HTTPPort: "80"
-              HTTPSPort: "443"
-              OriginProtocolPolicy: match-viewer
+            S3OriginConfig:
+              OriginAccessIdentity: ''
         Enabled: true
         HttpVersion: http2
         DefaultRootObject: index.html
@@ -94,7 +92,7 @@ Resources:
       FunctionName: !Join ['', [!Ref BlogBaseName, '-contactform-lambda']]
       Handler: contactform.handler
       Code:
-        S3Bucket: jyang-nimbusblog.com
+        S3Bucket: testnimbusblog-resources
         S3Key: lambda.zip
       MemorySize: 128
       Role: !Join ['', ['arn:aws:iam::', !Ref 'AWS::AccountId', ':role/', !Ref NimbusBlogLambdaRole]]
@@ -118,20 +116,21 @@ Resources:
     Properties:  
       Description: "API for Contact Us on NimbusBlog"
       Name: "NimbusBlogApi"
+  NimbusBlogApiContactUs:
+    Type: AWS::ApiGateway::Resource
+    DependsOn:
+    - NimbusBlogApi
+    Properties:
+      RestApiId: !Ref NimbusBlogApi
+      ParentId: !GetAtt NimbusBlogApi.RootResourceId
+      PathPart: contact-us
   NimbusBlogApiMethodPost:
     Type: AWS::ApiGateway::Method
     Properties:
       AuthorizationType: NONE
+      RestApiId: !Ref NimbusBlogApi
+      ResourceId: !Ref NimbusBlogApiContactUs
       HttpMethod: POST
-      ResourceId: !GetAtt NimbusBlogApi.RootResourceId
-      RestApiId: !Ref NimbusBlogApi
-  NimbusBlogApiMethodOptions:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      AuthorizationType: NONE
-      RestApiId: !Ref NimbusBlogApi
-      ResourceId: !GetAtt NimbusBlogApi.RootResourceId
-      HttpMethod: OPTIONS
       Integration:
         IntegrationResponses:
         - StatusCode: 200
@@ -163,3 +162,6 @@ Outputs:
   CloudfrontEndpoint:
     Value: !GetAtt [NimbusBlogCloudfront, DomainName]
     Description: Endpoint for Cloudfront distribution
+  CloudfrontId:
+    Value: !Ref NimbusBlogCloudfront
+    Description: Id for Cloudfront distribution

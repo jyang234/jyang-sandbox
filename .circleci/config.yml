@@ -4,18 +4,59 @@ jobs:
     docker:
       - image: cibuilds/hugo:latest
     working_directory: ~/hugo
-    environment:
-      HUGO_BUILD_DIR: ~/hugo
-      S3_BLOG_BUCKET: s3://jyang-nimbusblog.com
-      CLOUDFRONT_ID: E32CT10S37XQPL
     steps:
+      - run:
+          name: Check if environment variables set before proceeding
+          command: |
+            printf "%s\n" "${HUGO_BUILD_DIR:?You must set HUGO_BUILD_DIR}"
+            printf "%s\n" "${BLOGBASE:?You must set BLOGBASE}"
+            printf "%s\n" "${S3_BLOG_BUCKET:?You must set S3_BLOG_BUCKET}"
+            printf "%s\n" "${S3_RESOURCE_BUCKET:?You must set S3_RESOURCE_BUCKET}"
+            printf "%s\n" "${RECEIVER_EMAIL:?You must set RECEIVER_EMAIL}"
+            printf "%s\n" "${SENDER_EMAIL:?You must set SENDER_EMAIL}"
+            printf "%s\n" "${AWS_REGION:?You must set AWS_REGION}"
+            echo "All environment variables set! Proceeding.."
       - run: apk update && apk add git
       - checkout
       - run:
-          name: Install AWS CLI
+          name: Install AWS CLI and linux tools
           command: |
-            apk add --update python python-dev py-pip build-base
+            apk add --update python python-dev py-pip build-base zip
             pip install awscli
+      - run:
+          name: Update AWS config with region
+          command: aws configure set default.region $AWS_REGION
+      - run:
+          name: Check if resource bucket is present ; If not, create
+          command: |
+            if aws s3api head-bucket --bucket $S3_RESOURCE_BUCKET; then
+              echo "Resource bucket $S3_RESOURCE_BUCKET exists, moving on!"
+            else
+              echo "Resource bucket $S3_RESOURCE_BUCKET does not exist, creating..."
+              aws s3api create-bucket --bucket $S3_RESOURCE_BUCKET
+              aws s3api head-bucket --bucket $S3_RESOURCE_BUCKET
+            fi
+      - run:
+          name: Zip up lambda function and push to aws
+          command: |
+            cd aws/lambda
+            zip lambda.zip *
+            aws s3 cp lambda.zip s3://$S3_RESOURCE_BUCKET/lambda.zip
+            rm lambda.zip
+      - run:
+          name: Deploy or update aws infrastructure
+          command: |
+            aws cloudformation deploy --template-file ./aws/cloudformation/nimbusblog.yml \
+              --stack-name $BLOGBASE-stack-cf \
+              --parameter-overrides \
+                BlogBaseName=$BLOGBASE \
+                ContactReceiverEmail=$RECEIVER_EMAIL \
+                ContactSenderEmail=$SENDER_EMAIL \
+              --capabilities CAPABILITY_NAMED_IAM
+          no_output_timeout: 60m
+      - run:
+          name: Update lambda function code on contact form
+          command: aws lambda update-function-code --function-name contactform-lambda --s3-bucket $S3_RESOURCE_BUCKET --s3-key lambda.zip
       - run:
           name: Build with Hugo
           command: HUGO_ENV=production hugo -v -d $HUGO_BUILD_DIR --theme dimension
@@ -24,10 +65,17 @@ jobs:
           command: |
             if [ "${CIRCLE_BRANCH}" = "master" ]; then
               aws s3 sync $HUGO_BUILD_DIR \
-              $S3_BLOG_BUCKET --delete
+              s3://$S3_BLOG_BUCKET --delete
             else
               echo "Not master branch, dry run only"
             fi
+      - run:
+          name: Obtain cloudfront ID
+          command: |
+            CLOUDFRONT_ID=$(aws cloudformation describe-stacks --stack-name testcfblog-stack-cf \
+              --query 'Stacks[*].Outputs[*].[OutputKey,OutputValue]' \
+              --output text | grep CloudfrontId | awk '{print $2;}')
+            export CLOUDFRONT_ID=$CLOUDFRONT_ID
       - run:
           name: Invalidate cloudfront cache to ensure delivery of new files
           command: aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --path "/*"

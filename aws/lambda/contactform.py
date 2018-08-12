@@ -15,6 +15,7 @@ def response(message, status_code):
         }
 
 def sendEmail(event, sender, receiver):
+    ses = boto3.client('ses')
     ses.send_email(
         Source=sender,
         Destination={
@@ -24,12 +25,14 @@ def sendEmail(event, sender, receiver):
         },
         Message={
             'Subject': {
-                'Data': 'name: ' + event.name + '\nemail: ' + event.email + '\ndesc: ' + event.messg
+                'Data': 'You got mail! From: ' + event['name'],
                 'Charset': 'UTF-8'
-            }
-            'Subject': {
-                'Data': 'You got mail! From: ' + event.name,
-                'Charset': 'UTF-8'
+            },
+            'Body': {
+                'Text': {
+                    'Data': 'name: ' + event['name'] + '\nemail: ' + event['email'] + '\ndesc: ' + event['messg'],
+                    'Charset': 'UTF-8'
+                }
             }
         }
     )
@@ -37,10 +40,10 @@ def sendEmail(event, sender, receiver):
 def handler(event, context):
     sender = os.environ['sender']
     receiver = os.environ['receiver']
-    ses = boto3.client('ses')
-    print('Received event:' + event)
+
+    print('Received event:' + str(event))
     try:
         sendEmail(event, sender, receiver)
         return response({'message': 'all good'}, 200)
     except Exception as e:
-        return response({'message': e.message}, 400)
+        return response({'message': str(e)}, 400)
